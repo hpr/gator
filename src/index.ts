@@ -1,5 +1,8 @@
+import { getConfig, setUser } from "./config";
+
 function main() {
-  console.log("Hello, world!");
+  setUser("boots");
+  console.log(getConfig());
 }
 
 main();
