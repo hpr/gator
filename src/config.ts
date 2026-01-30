@@ -32,10 +32,10 @@ const validateConfig = (rawConfig: unknown): Config => {
     currentUserName: "current_user_name" in rawConfig ? String(rawConfig.current_user_name) : undefined,
   };
 };
-export const getConfig = (): Config => validateConfig(JSON.parse(fs.readFileSync(getConfigFilePath(), "utf-8")));
+export const readConfig = (): Config => validateConfig(JSON.parse(fs.readFileSync(getConfigFilePath(), "utf-8")));
 
 export const setUser = (user: string) => {
-  const config = getConfig();
+  const config = readConfig();
   config.currentUserName = user;
   writeConfig(config);
 };
