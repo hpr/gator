@@ -1,5 +1,5 @@
-import { setUser } from "./config";
-import { createUser, getUser, resetUsers } from "./lib/db/queries/users";
+import { readConfig, setUser } from "./config";
+import { createUser, getUser, getUsers, resetUsers } from "./lib/db/queries/users";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
 export type CommandsRegistry = {
@@ -30,4 +30,9 @@ export const handlerRegister: CommandHandler = async (cmdName: string, user: str
 export const handlerReset: CommandHandler = async (cmdName: string) => {
   await resetUsers();
   console.log("reset users successful");
+};
+export const handlerUsers: CommandHandler = async (cmdName: string) => {
+  const users = await getUsers();
+  const config = readConfig();
+  console.log(users.map(u => `* ${u.name}${u.name === config.currentUserName ? ' (current)' : ''}`).join("\n"));
 };

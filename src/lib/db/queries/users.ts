@@ -15,3 +15,7 @@ export const getUser = async (name: string) => {
 export const resetUsers = async () => {
   await db.delete(users);
 }
+
+export const getUsers = async () => {
+  return await db.select().from(users);
+}
