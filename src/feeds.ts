@@ -1,4 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
+import { Feed, User } from "./lib/db/schema";
 
 type RSSFeed = {
   channel: {
@@ -31,7 +32,11 @@ export const fetchFeed = async (feedURL: string) => {
   for (const it of items) {
     if ((['title', 'link', 'description', 'pubDate'] as const).some(key => !it[key] || typeof it[key] !== 'string'))
       continue;
-    feed.channel.item.push(it);
+    feed.channel.item.push({ title: it.title, link: it.link, description: it.description, pubDate: it.pubDate });
   }
   return feed;
+};
+
+export const printFeed = (feed: Feed, user: User) => {
+  console.log(`Feed for ${user.name}: ${feed.name} (${feed.url})`);
 };

@@ -1,6 +1,7 @@
 import { readConfig, setUser } from "./config";
+import { createFeed } from "./lib/db/queries/feeds";
 import { createUser, getUser, getUsers, resetUsers } from "./lib/db/queries/users";
-import { fetchFeed } from "./rss";
+import { fetchFeed, printFeed } from "./feeds";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
 export type CommandsRegistry = {
@@ -39,4 +40,11 @@ export const handlerUsers: CommandHandler = async (cmdName: string) => {
 };
 export const handleAgg: CommandHandler = async (cmdName: string) => {
   console.log(JSON.stringify(await fetchFeed("https://www.wagslane.dev/index.xml")));
-}
+};
+export const handleAddFeed: CommandHandler = async (cmdName: string, name: string, url: string) => {
+  const config = readConfig();
+  if (!config.currentUserName) throw Error("no currentUserName");
+  const user = await getUser(config.currentUserName);
+  const feed = await createFeed(name, url, user.id);
+  printFeed(feed, user);
+};
