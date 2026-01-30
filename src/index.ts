@@ -1,4 +1,4 @@
-import { CommandsRegistry, handlerLogin, handlerRegister, handlerReset, handlerUsers, registerCommand, runCommand } from "./commands";
+import { CommandsRegistry, handleAgg, handlerLogin, handlerRegister, handlerReset, handlerUsers, registerCommand, runCommand } from "./commands";
 
 async function main() {
   const registry: CommandsRegistry = {};
@@ -6,6 +6,7 @@ async function main() {
   registerCommand(registry, "register", handlerRegister);
   registerCommand(registry, "reset", handlerReset);
   registerCommand(registry, "users", handlerUsers);
+  registerCommand(registry, "agg", handleAgg);
   const args = process.argv.slice(2);
   if (!args.length) {
     console.error("no arguments");
