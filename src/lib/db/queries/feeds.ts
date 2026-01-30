@@ -7,3 +7,7 @@ export const createFeed = async (name: string, url: string, userId: string) => {
   const [result] = await db.insert(feeds).values({ name, url, userId }).returning();
   return result;
 }
+
+export const getFeeds = async () => {
+  return await db.select().from(feeds);
+}

@@ -1,6 +1,6 @@
 import { readConfig, setUser } from "./config";
-import { createFeed } from "./lib/db/queries/feeds";
-import { createUser, getUser, getUsers, resetUsers } from "./lib/db/queries/users";
+import { createFeed, getFeeds } from "./lib/db/queries/feeds";
+import { createUser, getUser, getUserById, getUsers, resetUsers } from "./lib/db/queries/users";
 import { fetchFeed, printFeed } from "./feeds";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
@@ -47,4 +47,10 @@ export const handleAddFeed: CommandHandler = async (cmdName: string, name: strin
   const user = await getUser(config.currentUserName);
   const feed = await createFeed(name, url, user.id);
   printFeed(feed, user);
+};
+export const handleFeeds: CommandHandler = async (cmdName: string) => {
+  for (const feed of await getFeeds()) {
+    const user = await getUserById(feed.userId);
+    console.log(`${feed.name} (${feed.url}) by ${user.name}`);
+  }
 };
