@@ -1,4 +1,4 @@
-import { CommandsRegistry, handleAddFeed, handleAgg, handleFeeds, handleFollow, handleFollowing, handlerLogin, handlerRegister, handlerReset, handlerUsers, registerCommand, runCommand } from "./commands";
+import { CommandsRegistry, handlerAddFeed, handlerAgg, handlerFeeds, handlerFollow, handlerFollowing, handlerLogin, handlerRegister, handlerReset, handlerUsers, middlewareLoggedIn, registerCommand, runCommand } from "./commands";
 
 async function main() {
   const registry: CommandsRegistry = {};
@@ -6,11 +6,11 @@ async function main() {
   registerCommand(registry, "register", handlerRegister);
   registerCommand(registry, "reset", handlerReset);
   registerCommand(registry, "users", handlerUsers);
-  registerCommand(registry, "agg", handleAgg);
-  registerCommand(registry, "addfeed", handleAddFeed);
-  registerCommand(registry, "feeds", handleFeeds);
-  registerCommand(registry, "follow", handleFollow);
-  registerCommand(registry, "following", handleFollowing);
+  registerCommand(registry, "agg", handlerAgg);
+  registerCommand(registry, "addfeed", middlewareLoggedIn(handlerAddFeed));
+  registerCommand(registry, "feeds", handlerFeeds);
+  registerCommand(registry, "follow", middlewareLoggedIn(handlerFollow));
+  registerCommand(registry, "following", middlewareLoggedIn(handlerFollowing));
   const args = process.argv.slice(2);
   if (!args.length) {
     console.error("no arguments");

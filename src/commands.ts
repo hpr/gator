@@ -3,11 +3,26 @@ import { createFeed, getFeedByUrl, getFeeds } from "./lib/db/queries/feeds";
 import { createUser, getUser, getUserById, getUsers, resetUsers } from "./lib/db/queries/users";
 import { fetchFeed, printFeed } from "./feeds";
 import { createFeedFollow, getFeedFollowsForUser } from "./lib/db/queries/feedFollows";
+import { User } from "./lib/db/schema";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
 export type CommandsRegistry = {
   [cmdName: string]: CommandHandler;
 };
+
+type UserCommandHandler = (
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) => Promise<void>;
+export const middlewareLoggedIn = (handler: UserCommandHandler): CommandHandler => {
+  return async (cmdName: string, ...args: string[]) => {
+    const config = readConfig();
+    if (!config.currentUserName) throw Error("no currentUserName");
+    const user = await getUser(config.currentUserName);
+    return await handler(cmdName, user, ...args);
+  }
+}
 
 export const registerCommand = (registry: CommandsRegistry, cmdName: string, handler: CommandHandler) => {
   registry[cmdName] = handler;
@@ -39,35 +54,27 @@ export const handlerUsers: CommandHandler = async (cmdName: string) => {
   const config = readConfig();
   console.log(users.map(u => `* ${u.name}${u.name === config.currentUserName ? ' (current)' : ''}`).join("\n"));
 };
-export const handleAgg: CommandHandler = async (cmdName: string) => {
+export const handlerAgg: CommandHandler = async (cmdName: string) => {
   console.log(JSON.stringify(await fetchFeed("https://www.wagslane.dev/index.xml")));
 };
-export const handleAddFeed: CommandHandler = async (cmdName: string, name: string, url: string) => {
-  const config = readConfig();
-  if (!config.currentUserName) throw Error("no currentUserName");
-  const user = await getUser(config.currentUserName);
+export const handlerAddFeed: UserCommandHandler = async (cmdName: string, user: User, name: string, url: string) => {
   const feed = await createFeed(name, url, user.id);
   await createFeedFollow(feed.id, user.id);
   printFeed(feed, user);
 };
-export const handleFeeds: CommandHandler = async (cmdName: string) => {
+export const handlerFeeds: CommandHandler = async (cmdName: string) => {
   for (const feed of await getFeeds()) {
     const user = await getUserById(feed.userId);
     console.log(`${feed.name} (${feed.url}) by ${user.name}`);
   }
 };
-export const handleFollow: CommandHandler = async (cmdName: string, url: string) => {
+export const handlerFollow: UserCommandHandler = async (cmdName: string, user: User, url: string) => {
   const feed = await getFeedByUrl(url);
-  const config = readConfig();
-  if (!config.currentUserName) throw Error("no currentUserName");
-  const user = await getUser(config.currentUserName);
   const feedFollow = await createFeedFollow(feed.id, user.id);
   console.log(`${feedFollow.userName} is now following ${feed.name}`);
 };
-export const handleFollowing: CommandHandler = async (cmdName: string) => {
-  const config = readConfig();
-  if (!config.currentUserName) throw Error("no currentUserName");
-  const feedFollows = await getFeedFollowsForUser(config.currentUserName);
+export const handlerFollowing: UserCommandHandler = async (cmdName: string, user: User) => {
+  const feedFollows = await getFeedFollowsForUser(user.name);
   console.log("Following:");
   console.log(feedFollows.map(ff => `* ${ff.feedName}`).join("\n"));
 }
