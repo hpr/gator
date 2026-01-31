@@ -4,6 +4,7 @@ import { createUser, getUser, getUserById, getUsers, resetUsers } from "./lib/db
 import { fetchFeed, printFeed, scrapeFeeds } from "./feeds";
 import { createFeedFollow, deleteFeedFollow, getFeedFollowsForUser } from "./lib/db/queries/feedFollows";
 import { User } from "./lib/db/schema";
+import { getPostsForUser } from "./lib/db/queries/posts";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
 export type CommandsRegistry = {
@@ -99,4 +100,12 @@ export const handlerFollowing: UserCommandHandler = async (cmdName: string, user
 };
 export const handlerUnfollow: UserCommandHandler = async (cmdName: string, user: User, url: string) => {
   await deleteFeedFollow(user.name, url);
+};
+export const handlerBrowse: UserCommandHandler = async (cmdName: string, user: User, limit: string = "2") => {
+  const posts = await getPostsForUser(user.name, +limit);
+  for (const p of posts) {
+    console.log(`* From ${p.feeds.name}: "${p.posts.title}"${p.posts.publishedAt ? `, published ${p.posts.publishedAt}` : ''}`);
+    if (p.posts.description) console.log(`  - ${p.posts.description}`);
+    console.log(`  - Read more: ${p.posts.url}`);
+  }
 };

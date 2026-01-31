@@ -1,6 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 import { Feed, User } from "./lib/db/schema";
 import { getNextFeedToFetch, markFeedFetched } from "./lib/db/queries/feeds";
+import { createPost } from "./lib/db/queries/posts";
 
 type RSSFeed = {
   channel: {
@@ -48,6 +49,7 @@ export const scrapeFeeds = async () => {
   const feed = await fetchFeed(next.url);
   console.log(`From "${feed.channel.title}":`);
   for (const it of feed.channel.item) {
+    await createPost(next.id, it.title, it.link, it.description, new Date(it.pubDate));
     console.log(`* ${it.title}`);
   }
 };
