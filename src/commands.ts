@@ -1,7 +1,8 @@
 import { readConfig, setUser } from "./config";
-import { createFeed, getFeeds } from "./lib/db/queries/feeds";
+import { createFeed, getFeedByUrl, getFeeds } from "./lib/db/queries/feeds";
 import { createUser, getUser, getUserById, getUsers, resetUsers } from "./lib/db/queries/users";
 import { fetchFeed, printFeed } from "./feeds";
+import { createFeedFollow, getFeedFollowsForUser } from "./lib/db/queries/feedFollows";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
 export type CommandsRegistry = {
@@ -46,6 +47,7 @@ export const handleAddFeed: CommandHandler = async (cmdName: string, name: strin
   if (!config.currentUserName) throw Error("no currentUserName");
   const user = await getUser(config.currentUserName);
   const feed = await createFeed(name, url, user.id);
+  await createFeedFollow(feed.id, user.id);
   printFeed(feed, user);
 };
 export const handleFeeds: CommandHandler = async (cmdName: string) => {
@@ -54,3 +56,18 @@ export const handleFeeds: CommandHandler = async (cmdName: string) => {
     console.log(`${feed.name} (${feed.url}) by ${user.name}`);
   }
 };
+export const handleFollow: CommandHandler = async (cmdName: string, url: string) => {
+  const feed = await getFeedByUrl(url);
+  const config = readConfig();
+  if (!config.currentUserName) throw Error("no currentUserName");
+  const user = await getUser(config.currentUserName);
+  const feedFollow = await createFeedFollow(feed.id, user.id);
+  console.log(`${feedFollow.userName} is now following ${feed.name}`);
+};
+export const handleFollowing: CommandHandler = async (cmdName: string) => {
+  const config = readConfig();
+  if (!config.currentUserName) throw Error("no currentUserName");
+  const feedFollows = await getFeedFollowsForUser(config.currentUserName);
+  console.log("Following:");
+  console.log(feedFollows.map(ff => `* ${ff.feedName}`).join("\n"));
+}
